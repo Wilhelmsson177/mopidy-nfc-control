@@ -1,0 +1,16 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+mopidy = "*"
+
+[dev-packages]
+cookiecutter = "*"
+pytest = "*"
+"flake8" = "*"
+tox = "*"
+
+[requires]
+python_version = "2.7"
