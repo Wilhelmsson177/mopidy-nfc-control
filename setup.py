@@ -13,7 +13,7 @@ def get_version(filename):
 
 setup(
     name='Mopidy-NFC-Control',
-    version=get_version('mopidy_nfc-control/__init__.py'),
+    version=get_version('mopidy_nfc_control/__init__.py'),
     url='https://github.com/Wilhelmsson177/mopidy-nfc-control',
     license='Apache License, Version 2.0',
     author='Willi Meierhof',
