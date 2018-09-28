@@ -27,6 +27,7 @@ setup(
         'setuptools',
         'Mopidy >= 1.0',
         'Pykka >= 1.1',
+        'nxppy'
     ],
     entry_points={
         'mopidy.ext': [

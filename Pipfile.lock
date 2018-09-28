@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "45aa243c78bc9167932b97ce3ab7bb5a96d06890c9cf071b4c01eeb6fe24a25b"
+            "sha256": "a3b8b172b4f28df3980f4f746d8e1d01cfddfb8ac9ecf6f432622f49f80e3251"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -50,6 +50,7 @@
                 "sha256:e847ffeadee49b563426ab803e8eee67264d773e38ca14763fdcda56411e3c11",
                 "sha256:f811732aa9e8e027db99f41b1e403251c8e1d26addab0161c925fac232e9334c"
             ],
+            "index": "pypi",
             "version": "==1.2.1"
         },
         "requests": {
@@ -247,10 +248,10 @@
         },
         "poyo": {
             "hashes": [
-                "sha256:103b4ee3e1c7765098fe1cabe43f828db2e2a6079646561a2117e1a809f352d6",
-                "sha256:230ec11c2f35a23410c1f0e474f09fa4e203686f40ab3adca7b039c845d8c325"
+                "sha256:c34a5413191210ed564640510e9c4a4ba3b698746d6b454d46eb5bfb30edcd1d",
+                "sha256:d1c317054145a6b1ca0608b5e676b943ddc3bfd671f886a2fe09288b98221edb"
             ],
-            "version": "==0.4.1"
+            "version": "==0.4.2"
         },
         "py": {
             "hashes": [
