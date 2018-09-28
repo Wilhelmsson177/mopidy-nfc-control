@@ -31,7 +31,7 @@ setup(
     ],
     entry_points={
         'mopidy.ext': [
-            'nfc-control = mopidy_nfc-control:Extension',
+            'nfc-control = mopidy_nfc_control:Extension',
         ],
     },
     classifiers=[
