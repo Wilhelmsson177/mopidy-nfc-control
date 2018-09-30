@@ -20,8 +20,9 @@ class NfcControl(pykka.ThreadingActor, core.CoreListener):
         self.core = core
         self.lastId = None
         logger.info('Successfully initialized NfcControl frontend plugin.')
+        self._getIds()
 
-    def _getIds():
+    def _getIds(self):
         while True:
             # reading the card id
             try:
