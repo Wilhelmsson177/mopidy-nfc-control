@@ -5,6 +5,7 @@ import time
 
 from mopidy import core
 import nxppy
+import ndef
 
 import pykka
 
@@ -18,18 +19,25 @@ class NfcControl(pykka.ThreadingActor, core.CoreListener):
         super(NfcControl, self).__init__()
         self.core = core
         self.lastId = None
+        logger.info('Successfully initialized NfcControl frontend plugin.')
 
     def _getIds():
         while True:
             # reading the card id
             try:
                 uid = mifare.select()
-                logging.info("Received the following data: {}".format(uid))
+                logger.info("Selected the following id: {}".format(uid))
                 if uid != self.lastId:
                     self.lastId = uid
+                    nfc_content = list(ndef.message_decoder(mifare.read_ndef()))
+                    for record in nfc_content:
+                        logger.info("Record type: {}".format(record.type))
+                        if record.type == 'urn:nfc:wkt:U':
+                            logger.info("detected URI type")
+                            logger.info('URI: {}'.format(record.uri))
 
             except nxppy.SelectError as se:
                 # SelectError is raised if no card is in the field.
-                logging.debug("Had an issue selecting the id: {}".format(se))
+                logger.debug("Had an issue selecting the id: {}".format(se))
 
             time.sleep(0.5)
