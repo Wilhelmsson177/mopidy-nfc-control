@@ -20,7 +20,7 @@ class NfcControl(pykka.ThreadingActor, core.CoreListener):
         super(NfcControl, self).__init__()
         self.core = core
         logger.info('Successfully initialized NfcControl frontend plugin.')
-        self.nfcTagMonitor = NfcTagMonitor()
+        self.nfcTagMonitor = NfcTagMonitor(config['taghold'])
         self.nfcTagMonitor.RegisterControlTagCallback(self.Control)
         self.nfcTagMonitor.RegisterUriTagCallback(self.PlaybackonUri)
         self.nfcTagMonitor.RegisterNfcTagRemovedCallback(self.TagRemoved)
