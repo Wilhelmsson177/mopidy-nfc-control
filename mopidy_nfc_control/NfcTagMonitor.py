@@ -69,5 +69,5 @@ class NfcTagMonitor(object):
     def RegisterControlTagCallback(self, callback):
         self.controlTagCallback = callback
         
-    def RegisterNfcTagRemovedCallBack(self, callback):
+    def RegisterNfcTagRemovedCallback(self, callback):
         self.nfcTagRemovedCallback = callback
