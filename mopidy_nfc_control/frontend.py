@@ -20,6 +20,7 @@ class NfcControl(pykka.ThreadingActor, core.CoreListener):
         self.nfcTagMonitor.RegisterUriTagCallback(self.PlaybackonUri)
         self.nfcTagMonitor.RegisterNfcTagRemovedCallback(self.TagRemoved)
         start_new_thread(self.nfcTagMonitor.Run, ())
+        logger.info('Started nfcTagMonitor in new thread')
 
     def TagRemoved(self):
         logger.debug('Tag has been removed')
