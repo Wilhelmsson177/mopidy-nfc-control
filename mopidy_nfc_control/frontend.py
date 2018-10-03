@@ -1,8 +1,5 @@
 import logging
-import traceback
 from thread import start_new_thread
-
-import time
 
 from mopidy import core
 
@@ -13,9 +10,7 @@ from NfcTagMonitor import NfcTagMonitor
 logger = logging.getLogger(__name__)
 
 
-
 class NfcControl(pykka.ThreadingActor, core.CoreListener):
-
     def __init__(self, config, core):
         super(NfcControl, self).__init__()
         self.core = core
@@ -24,11 +19,11 @@ class NfcControl(pykka.ThreadingActor, core.CoreListener):
         self.nfcTagMonitor.RegisterControlTagCallback(self.Control)
         self.nfcTagMonitor.RegisterUriTagCallback(self.PlaybackonUri)
         self.nfcTagMonitor.RegisterNfcTagRemovedCallback(self.TagRemoved)
-        start_new_thread(self.nfcTagMonitor.Run,())
+        start_new_thread(self.nfcTagMonitor.Run, ())
 
     def TagRemoved(self):
         logger.debug('Tag has been removed')
-    
+
     def Control(self, input=None):
         logger.info('Received {} control.'.format(input))
 
@@ -41,4 +36,3 @@ class NfcControl(pykka.ThreadingActor, core.CoreListener):
         '''
         logger.info('Received {} URI.'.format(uri))
         pass
-

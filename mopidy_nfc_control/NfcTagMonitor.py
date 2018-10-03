@@ -12,10 +12,11 @@ import ndef
 
 logger = logging.getLogger(__name__)
 
+
 class NfcTagMonitor(object):
     '''The tag monitor class definition.
     '''
-    
+
     def __init__(self, nfc_tag_hold=True):
         """
         Constructor.
@@ -35,28 +36,31 @@ class NfcTagMonitor(object):
         while True:
             # reading the card id
             try:
-                uid = mifare.select()
+                uid = self.mifare.select()
                 if uid != self.lastId:
                     logger.info("Selected the following id: {}".format(uid))
                     self.lastId = uid
-                    nfc_content = list(ndef.message_decoder(mifare.read_ndef()))
+                    nfc_content = list(
+                        ndef.message_decoder(self.mifare.read_ndef()))
                     for record in nfc_content:
                         logger.info("Record type: {}".format(record.type))
                         if record.type == 'urn:nfc:wkt:U':
                             logger.info("detected URI type")
                             logger.info('URI: {}'.format(record.uri))
-                            self.uriTagCallback(uri)
+                            self.uriTagCallback(record.uri)
                         else:
                             logger.info("detected unknown type")
                             logger.info('TYPE: {}'.format(record.type))
                             self.controlTagCallback()
                 else:
                     if self.nfcTagHold and self.tagRemoved:
-                       self.controlTagCallback('RESUME')
+                        self.controlTagCallback('RESUME')
                 self.tagRemoved = False
             except nxppy.SelectError as se:
                 # SelectError is raised if no card is in the field.
-                logger.debug("Had an issue selecting the id. Probably the NFC Tag has been removed: {}".format(se))
+                logger.debug(
+                    "Had an issue selecting the id. Probably the NFC tag has been removed: {}"
+                    .format(se))
                 if self.nfcTagHold:
                     self.nfcTagRemovedCallback()
                     self.tagRemoved = True
@@ -65,9 +69,9 @@ class NfcTagMonitor(object):
 
     def RegisterUriTagCallback(self, callback):
         self.uriTagCallback = callback
-    
+
     def RegisterControlTagCallback(self, callback):
         self.controlTagCallback = callback
-        
+
     def RegisterNfcTagRemovedCallback(self, callback):
         self.nfcTagRemovedCallback = callback
