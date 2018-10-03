@@ -24,6 +24,7 @@ class Extension(ext.Extension):
 
     def get_config_schema(self):
         schema = super(Extension, self).get_config_schema()
+        schema['taghold'] = config.Boolean()
         return schema
 
     def setup(self, registry):
