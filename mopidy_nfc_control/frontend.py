@@ -1,5 +1,5 @@
 import logging
-from thread import start_new_thread
+from threading
 
 from mopidy import core
 
@@ -8,28 +8,40 @@ import pykka
 from NfcTagMonitor import NfcTagMonitor
 
 logger = logging.getLogger(__name__)
-
+__logprefix__ = 'NfcControl: '
 
 class NfcControl(pykka.ThreadingActor, core.CoreListener):
     def __init__(self, config, core):
         super(NfcControl, self).__init__()
         self.core = core
-        logger.info('Successfully initialized NfcControl frontend plugin.')
-        self.nfcTagMonitor = NfcTagMonitor(config['nfc-control']['taghold'])
+        self.taghold = config['nfc-control']['taghold']
+        self.nfcTagMonitor = None
+        self.nfcTagMonitorThread = None
+
+        logger.info(__logprefix__ + 'Successfully initialized NfcControl frontend plugin.')
+
+    def on_start(self):
+        self.nfcTagMonitor = NfcTagMontor(self.taghold)
+
         self.nfcTagMonitor.RegisterControlTagCallback(self.Control)
         self.nfcTagMonitor.RegisterUriTagCallback(self.PlaybackonUri)
         self.nfcTagMonitor.RegisterNfcTagRemovedCallback(self.TagRemoved)
-        logger.info('Start nfcTagMonitor in new thread')
-        try:
-            start_new_thread(self.nfcTagMonitor.Run, ())
-        except Exception as identifier:
-            logger.info('Error in  nfcTagMonitor  thread, {}'.format(identifier))
+        
+        self.nfcTagMonitorThread = threading.Thread(target=self.nfcTagMonitor.Run)
+        self.nfcTagMonitor.daemon = True
+
+        self.nfcTagMonitorThread.start()
+        logger.info(__logprefix__ + 'Start nfcTagMonitor in new thread')
+
+    def on_stop(self):
+        logger.info(__logprefix__ + 'NfcTagMonitor thread stopped.')
+        self.nfcTagMonitorThread.stop()
 
     def TagRemoved(self):
-        logger.debug('Tag has been removed')
+        logger.debug(__logprefix__ + 'Tag has been removed')
 
     def Control(self, input=None):
-        logger.info('Received {} control.'.format(input))
+        logger.info(__logprefix__ + 'Received {} control.'.format(input))
 
     def PlaybackonUri(self, uri):
         '''
