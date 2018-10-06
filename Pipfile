@@ -6,6 +6,8 @@ name = "pypi"
 [packages]
 mopidy = "*"
 pykka = "*"
+ndeflib = "*"
+nxppy = "*"
 
 [dev-packages]
 cookiecutter = "*"
