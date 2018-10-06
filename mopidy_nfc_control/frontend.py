@@ -1,5 +1,5 @@
 import logging
-from threading
+import threading
 
 from mopidy import core
 
