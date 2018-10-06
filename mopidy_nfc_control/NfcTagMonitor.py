@@ -5,6 +5,7 @@ The NFC Tag monitor which returns the values as callbacks.
 :author: Willi Meierhof
 '''
 import logging
+from threading import Event, Thread
 import time
 
 import nxppy
@@ -13,7 +14,7 @@ import ndef
 logger = logging.getLogger(__name__)
 
 
-class NfcTagMonitor(object):
+class NfcTagMonitor(Thread):
     '''The tag monitor class definition.
     '''
 
@@ -21,6 +22,9 @@ class NfcTagMonitor(object):
         """
         Constructor.
         """
+        Thread.__init__(self)
+        self._stop_event = Event()
+
         self.lastTag = None
         self.uriTagCallback = None
         self.controlTagCallback = None
@@ -29,7 +33,7 @@ class NfcTagMonitor(object):
         self.tagRemoved = True
         self.mifare = nxppy.Mifare()
 
-    def Run(self):
+    def run(self):
         """
         The method to run in an additional thread.
         """
@@ -38,19 +42,19 @@ class NfcTagMonitor(object):
             try:
                 uid = self.mifare.select()
                 if uid != self.lastId:
-                    logger.info("Selected the following id: {}".format(uid))
+                    logger.debug("Selected the following id: {}".format(uid))
                     self.lastId = uid
                     nfc_content = list(
                         ndef.message_decoder(self.mifare.read_ndef()))
                     for record in nfc_content:
-                        logger.info("Record type: {}".format(record.type))
+                        logger.debug("Record type: {}".format(record.type))
                         if record.type == 'urn:nfc:wkt:U':
-                            logger.info("detected URI type")
-                            logger.info('URI: {}'.format(record.uri))
+                            logger.debug("detected URI type")
+                            logger.debug('URI: {}'.format(record.uri))
                             self.uriTagCallback(record.uri)
                         else:
-                            logger.info("detected unknown type")
-                            logger.info('TYPE: {}'.format(record.type))
+                            logger.debug("detected unknown type")
+                            logger.debug('TYPE: {}'.format(record.type))
                             self.controlTagCallback()
                 else:
                     if self.nfcTagHold and self.tagRemoved:
@@ -64,8 +68,10 @@ class NfcTagMonitor(object):
                 if self.nfcTagHold:
                     self.nfcTagRemovedCallback()
                     self.tagRemoved = True
-
             time.sleep(0.1)
+    
+    def cancel(self):
+        self._stop_event.set()
 
     def RegisterUriTagCallback(self, callback):
         self.uriTagCallback = callback
