@@ -37,6 +37,7 @@ class NfcTagMonitor(Thread):
         """
         The method to run in an additional thread.
         """
+        logger.info("NfcTagMonitor: Run the cycle ...")
         while True:
             # reading the card id
             try:
