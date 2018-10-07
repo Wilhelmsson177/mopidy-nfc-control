@@ -29,39 +29,40 @@ class NfcControl(pykka.ThreadingActor, core.CoreListener):
 
     def start_thread(self):
         while self.running:
-            try:
-            	logger.info(__logprefix__ + 'Cycle')
-                # uid = self.mifare.select()
-		uid = 1
-                logger.info(__logprefix__ + 'Cycle #2')
-                if uid != self.lastTag:
-                    logger.debug("Selected the following id: {}".format(uid))
-                    self.lastTag = uid
-                    nfc_content = list(
-                        ndef.message_decoder(self.mifare.read_ndef()))
-                    for record in nfc_content:
-                        logger.debug("Record type: {}".format(record.type))
-                        if record.type == 'urn:nfc:wkt:U':
-                            logger.debug("detected URI type")
-                            logger.debug('URI: {}'.format(record.uri))
-                            self.PlaybackonUri(record.uri)
-                        else:
-                            logger.debug("detected unknown type")
-                            logger.debug('TYPE: {}'.format(record.type))
-                            self.Control()
-                else:
-                    logger.info(__logprefix__ + 'Cycle #3')
-                    if self.nfcTagHold and self.tagRemoved:
-                        self.Control('RESUME')
-		logger.info(__logprefix__ + 'Cycle #4')                
-		self.tagRemoved = False
-            except nxppy.SelectError as se:
-                # SelectError is raised if no card is in the field.
-                logger.debug(
-                    "Had an issue selecting the id. Probably the NFC tag has been removed: {}".format(se))
-                if self.nfcTagHold:
-                    self.TagRemoved()
-                    self.tagRemoved = True
+            # try:
+            logger.info(__logprefix__ + 'Cycle')
+            #     # uid = self.mifare.select()
+            #     uid = 1
+            #     logger.info(__logprefix__ + 'Cycle #2')
+            #     if uid != self.lastTag:
+            #         logger.debug("Selected the following id: {}".format(uid))
+            #         self.lastTag = uid
+            #         nfc_content = list(
+            #             ndef.message_decoder(self.mifare.read_ndef()))
+            #         for record in nfc_content:
+            #             logger.debug("Record type: {}".format(record.type))
+            #             if record.type == 'urn:nfc:wkt:U':
+            #                 logger.debug("detected URI type")
+            #                 logger.debug('URI: {}'.format(record.uri))
+            #                 self.PlaybackonUri(record.uri)
+            #             else:
+            #                 logger.debug("detected unknown type")
+            #                 logger.debug('TYPE: {}'.format(record.type))
+            #                 self.Control()
+            #     else:
+            #         logger.info(__logprefix__ + 'Cycle #3')
+            #         if self.nfcTagHold and self.tagRemoved:
+            #             self.Control('RESUME')
+            #     logger.info(__logprefix__ + 'Cycle #4')
+            #     self.tagRemoved = False
+            # except nxppy.SelectError as se:
+            #     # SelectError is raised if no card is in the field.
+            #     logger.debug(
+            #         "Had an issue selecting the id. Probably the NFC tag has been removed: {}"
+            #         .format(se))
+            #     if self.nfcTagHold:
+            #         self.TagRemoved()
+            #         self.tagRemoved = True
             time.sleep(0.5)
 
     def on_start(self):
@@ -80,7 +81,8 @@ class NfcControl(pykka.ThreadingActor, core.CoreListener):
         logger.debug(__logprefix__ + 'Tag has been removed')
 
     def Control(self, control_string=None):
-        logger.info(__logprefix__ + 'Received {} control.'.format(control_string))
+        logger.info(__logprefix__ +
+                    'Received {} control.'.format(control_string))
 
     def PlaybackonUri(self, uri):
         '''
