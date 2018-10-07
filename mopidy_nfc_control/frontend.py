@@ -10,6 +10,8 @@ import nxppy
 import ndef
 
 logger = logging.getLogger(__name__)
+mifare = nxppy.Mifare()
+
 __logprefix__ = 'NfcControl: '
 
 
@@ -22,7 +24,6 @@ class NfcControl(pykka.ThreadingActor, core.CoreListener):
 
         self.lastTag = None
         self.tagRemoved = True
-        self.mifare = nxppy.Mifare()
 
         logger.info(__logprefix__ +
                     'Successfully initialized NfcControl frontend plugin.')
@@ -31,6 +32,14 @@ class NfcControl(pykka.ThreadingActor, core.CoreListener):
         while self.running:
             # try:
             logger.info(__logprefix__ + 'Cycle')
+            try:
+                uid = mifare.select()
+                logger.info(__logprefix__ + uid)
+            except nxppy.SelectError:
+                # SelectError is raised if no card is in the field.
+                logger.info(__logprefix__ + "empty")
+
+            time.sleep(1)
             #     # uid = self.mifare.select()
             #     uid = 1
             #     logger.info(__logprefix__ + 'Cycle #2')
