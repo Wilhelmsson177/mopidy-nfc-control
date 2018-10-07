@@ -1,10 +1,13 @@
 import logging
+import time
+from threading import Thread
+import traceback
 
 from mopidy import core
-
 import pykka
 
-from NfcTagMonitor import NfcTagMonitor
+import nxppy
+import ndef
 
 logger = logging.getLogger(__name__)
 __logprefix__ = 'NfcControl: '
@@ -15,35 +18,64 @@ class NfcControl(pykka.ThreadingActor, core.CoreListener):
         super(NfcControl, self).__init__()
         self.core = core
         self.taghold = config['nfc-control']['taghold']
-        self.nfcTagMonitor = None
+        self.running = False
+
+        self.lastTag = None
+        self.tagRemoved = True
+        self.mifare = nxppy.Mifare()
 
         logger.info(__logprefix__ +
                     'Successfully initialized NfcControl frontend plugin.')
 
+    def start_thread(self):
+        while self.running:
+            try:
+                uid = self.mifare.select()
+                if uid != self.lastTag:
+                    logger.debug("Selected the following id: {}".format(uid))
+                    self.lastTag = uid
+                    nfc_content = list(
+                        ndef.message_decoder(self.mifare.read_ndef()))
+                    for record in nfc_content:
+                        logger.debug("Record type: {}".format(record.type))
+                        if record.type == 'urn:nfc:wkt:U':
+                            logger.debug("detected URI type")
+                            logger.debug('URI: {}'.format(record.uri))
+                            self.PlaybackonUri(record.uri)
+                        else:
+                            logger.debug("detected unknown type")
+                            logger.debug('TYPE: {}'.format(record.type))
+                            self.Control()
+                else:
+                    if self.nfcTagHold and self.tagRemoved:
+                        self.Control('RESUME')
+                self.tagRemoved = False
+            except nxppy.SelectError as se:
+                # SelectError is raised if no card is in the field.
+                logger.debug(
+                    "Had an issue selecting the id. Probably the NFC tag has been removed: {}".format(se))
+                if self.nfcTagHold:
+                    self.TagRemoved()
+                    self.tagRemoved = True
+            time.sleep(0.1)
+
     def on_start(self):
-        self.nfcTagMonitor = NfcTagMonitor(self.taghold)
-
-        self.nfcTagMonitor.RegisterControlTagCallback(self.Control)
-        self.nfcTagMonitor.RegisterUriTagCallback(self.PlaybackonUri)
-        self.nfcTagMonitor.RegisterNfcTagRemovedCallback(self.TagRemoved)
-
-        logger.info(__logprefix__ + 'Start nfcTagMonitor in new thread')
-        self.nfcTagMonitor.daemon = True
         try:
-            self.nfcTagMonitor.start()
-            logger.info(__logprefix__ + 'Should have been started')
+            self.running = True
+            thread = Thread(target=self.start_thread)
+            thread.start()
         except:
             traceback.print_exc()
 
     def on_stop(self):
         logger.info(__logprefix__ + 'NfcTagMonitor thread stopped.')
-        self.nfcTagMonitor.cancel()
+        self.running = False
 
     def TagRemoved(self):
         logger.debug(__logprefix__ + 'Tag has been removed')
 
-    def Control(self, input=None):
-        logger.info(__logprefix__ + 'Received {} control.'.format(input))
+    def Control(self, control_string=None):
+        logger.info(__logprefix__ + 'Received {} control.'.format(control_string))
 
     def PlaybackonUri(self, uri):
         '''
@@ -53,4 +85,3 @@ class NfcControl(pykka.ThreadingActor, core.CoreListener):
         :type uri: string
         '''
         logger.info('Received {} URI.'.format(uri))
-        pass
