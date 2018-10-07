@@ -42,9 +42,9 @@ class NfcTagMonitor(Thread):
             # reading the card id
             try:
                 uid = self.mifare.select()
-                if uid != self.lastId:
+                if uid != self.lastTag:
                     logger.debug("Selected the following id: {}".format(uid))
-                    self.lastId = uid
+                    self.lastTag = uid
                     nfc_content = list(
                         ndef.message_decoder(self.mifare.read_ndef()))
                     for record in nfc_content:
