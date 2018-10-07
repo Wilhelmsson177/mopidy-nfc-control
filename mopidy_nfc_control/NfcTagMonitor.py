@@ -69,7 +69,7 @@ class NfcTagMonitor(Thread):
                 if self.nfcTagHold:
                     self.nfcTagRemovedCallback()
                     self.tagRemoved = True
-            time.sleep(0.1)
+            time.sleep(0.5)
     
     def cancel(self):
         self._stop_event.set()

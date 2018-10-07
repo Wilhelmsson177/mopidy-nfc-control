@@ -30,7 +30,10 @@ class NfcControl(pykka.ThreadingActor, core.CoreListener):
     def start_thread(self):
         while self.running:
             try:
-                uid = self.mifare.select()
+            	logger.info(__logprefix__ + 'Cycle')
+                # uid = self.mifare.select()
+		uid = 1
+                logger.info(__logprefix__ + 'Cycle #2')
                 if uid != self.lastTag:
                     logger.debug("Selected the following id: {}".format(uid))
                     self.lastTag = uid
@@ -47,9 +50,11 @@ class NfcControl(pykka.ThreadingActor, core.CoreListener):
                             logger.debug('TYPE: {}'.format(record.type))
                             self.Control()
                 else:
+                    logger.info(__logprefix__ + 'Cycle #3')
                     if self.nfcTagHold and self.tagRemoved:
                         self.Control('RESUME')
-                self.tagRemoved = False
+		logger.info(__logprefix__ + 'Cycle #4')                
+		self.tagRemoved = False
             except nxppy.SelectError as se:
                 # SelectError is raised if no card is in the field.
                 logger.debug(
@@ -57,7 +62,7 @@ class NfcControl(pykka.ThreadingActor, core.CoreListener):
                 if self.nfcTagHold:
                     self.TagRemoved()
                     self.tagRemoved = True
-            time.sleep(0.1)
+            time.sleep(0.5)
 
     def on_start(self):
         try:
