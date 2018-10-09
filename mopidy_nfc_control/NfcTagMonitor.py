@@ -46,7 +46,9 @@ class NfcTagMonitor(Thread):
             for dictionary in objects.itervalues():
                 allInterfaces.update(dictionary)
             props = allInterfaces.get("org.neard.Record", {})
-            logger.debug(__logprefix__ + props)
+            
+            logger.debug("{}{}".format(__logprefix__, props)
+            
             for (key, value) in props.items():
                 if key == "URI":
                     uri = value.decode("UTF-8")
