@@ -57,4 +57,4 @@ class NfcControl(pykka.ThreadingActor, core.CoreListener):
         self.core.tracklist.clear()
         tracks = self.core.tracklist.add(uris=uri)
         logger.debug("{}Received tracks: {}".format(__logprefix__, tracks))
-        self.core.playback.play(tracks[0])
+        self.core.playback.play()
