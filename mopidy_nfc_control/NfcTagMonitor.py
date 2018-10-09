@@ -14,6 +14,7 @@ from dbus.mainloop.glib import DBusGMainLoop
 logger = logging.getLogger(__name__)
 __logprefix__ = 'NfcTagMonitor: '
 
+
 class NfcTagMonitor(Thread):
     '''
     classdocs
@@ -28,7 +29,7 @@ class NfcTagMonitor(Thread):
         self.lastTag = None
         self.newTagCallback = None
         self.tagLostCallback = None
-        
+
         dbus_loop = DBusGMainLoop()
         self.bus = dbus.SystemBus(mainloop=dbus_loop)
         self.objManager = dbus.Interface(
@@ -46,14 +47,15 @@ class NfcTagMonitor(Thread):
             for dictionary in objects.itervalues():
                 allInterfaces.update(dictionary)
             props = allInterfaces.get("org.neard.Record", {})
-            
-            logger.debug("{}{}".format(__logprefix__, props)
-            
+
+            logger.debug("{}{}".format(__logprefix__, props))
+
             for (key, value) in props.items():
                 if key == "URI":
                     uri = value.decode("UTF-8")
                     if uri != self.lastTag:
-                        logger.debug(__logprefix__ + "TAG_DETECTED: {}".format(uri))
+                        logger.debug(__logprefix__ +
+                                     "TAG_DETECTED: {}".format(uri))
                         self.newTagCallback(uri)
                         self.lastTag = uri
                     break
@@ -64,6 +66,7 @@ class NfcTagMonitor(Thread):
                     self.lastTag = None
 
             time.sleep(0.1)
+
     def cancel(self):
         self.started = False
 
