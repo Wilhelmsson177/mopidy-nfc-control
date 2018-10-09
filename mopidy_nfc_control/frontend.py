@@ -53,7 +53,8 @@ class NfcControl(pykka.ThreadingActor, core.CoreListener):
         :param uri: the URI to run in mopidy.
         :type uri: string
         '''
-        logger.info('Received {} URI.'.format(uri))
+        logger.info("{}Received URI: {}".format(__logprefix__, uri))
         self.core.tracklist.clear()
-        self.core.tracklist.add(None, None, uri, None)
-        self.core.playback.play()
+        tracks = self.core.tracklist.add(uris=uri)
+        logger.debug("{}Received tracks: {}".format(__logprefix__, tracks))
+        self.core.playback.play(tracks[0])
