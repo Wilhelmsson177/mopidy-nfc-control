@@ -1,15 +1,18 @@
 # -*- coding: utf-8 -*-
 '''
-Created on 02.12.2016
+Created on 09.10.2018
 
-@author: lukas
+@author: Willi
 '''
+import logging
+import time
+from threading import Thread
 
 import dbus
 from dbus.mainloop.glib import DBusGMainLoop
-from threading import Thread
-import time
 
+logger = logging.getLogger(__name__)
+__logprefix__ = 'NfcTagMonitor: '
 
 class NfcTagMonitor(Thread):
     '''
@@ -21,9 +24,11 @@ class NfcTagMonitor(Thread):
         Constructor
         '''
         Thread.__init__(self)
+        self.started = True
         self.lastTag = None
         self.newTagCallback = None
         self.tagLostCallback = None
+        
         dbus_loop = DBusGMainLoop()
         self.bus = dbus.SystemBus(mainloop=dbus_loop)
         self.objManager = dbus.Interface(
@@ -34,28 +39,31 @@ class NfcTagMonitor(Thread):
             "org.neard.Adapter")
 
     def run(self):
-        while True:
+        while self.started:
             self.adapter.StartPollLoop("test")
             objects = self.objManager.GetManagedObjects()
             allInterfaces = {}
             for dictionary in objects.itervalues():
                 allInterfaces.update(dictionary)
             props = allInterfaces.get("org.neard.Record", {})
+            logger.debug(__logprefix__ + props)
             for (key, value) in props.items():
                 if key == "URI":
                     uri = value.decode("UTF-8")
                     if uri != self.lastTag:
-                        print("TAG_DETECTED: {}".format(uri))
+                        logger.debug(__logprefix__ + "TAG_DETECTED: {}".format(uri))
                         self.newTagCallback(uri)
                         self.lastTag = uri
                     break
             else:
                 if self.lastTag:
-                    print("TAG_LOST")
+                    logger.debug(__logprefix__ + "TAG_LOST")
                     self.tagLostCallback()
                     self.lastTag = None
 
             time.sleep(0.1)
+    def cancel(self):
+        self.started = False
 
     def RegisterNewTagCallback(self, callback):
         self.newTagCallback = callback

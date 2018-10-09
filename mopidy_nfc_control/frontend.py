@@ -52,4 +52,3 @@ class NfcControl(pykka.ThreadingActor, core.CoreListener):
         :type uri: string
         '''
         logger.info('Received {} URI.'.format(uri))
-        pass
