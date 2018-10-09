@@ -58,7 +58,7 @@ class NfcTagMonitor(Thread):
                     if uri != self.lastTag:
                         logger.debug(__logprefix__ +
                                      "TAG_DETECTED: {}".format(uri))
-                        self.newTagCallback(uri)
+                        self.newUriCallback(uri)
                         self.lastTag = uri
                     break
                 elif key == "Representation":
@@ -66,7 +66,7 @@ class NfcTagMonitor(Thread):
                     if text != self.lastTag:
                         logger.debug(__logprefix__ +
                                      "TAG_DETECTED: {}".format(text))
-                        self.newTagCallback(text)
+                        self.newTextCallback(text)
                         self.lastTag = text
                     break
             else:
