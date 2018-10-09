@@ -43,8 +43,8 @@ class NfcControl(pykka.ThreadingActor, core.CoreListener):
         logger.debug(__logprefix__ + 'Tag has been removed')
         self.core.PlaybackController.stop()
 
-    def Control(self, input=None):
-        logger.info(__logprefix__ + 'Received {} control.'.format(input))
+    def Control(self, control=None):
+        logger.info(__logprefix__ + 'Received {} control.'.format(control))
 
     def PlaybackonUri(self, uri):
         '''
@@ -55,5 +55,5 @@ class NfcControl(pykka.ThreadingActor, core.CoreListener):
         '''
         logger.info('Received {} URI.'.format(uri))
         self.core.TracklistController.clear()
-	    self.core.TracklistController.add(None, None, uri, None)
+        self.core.TracklistController.add(None, None, uri, None)
         self.core.PlaybackController.play()

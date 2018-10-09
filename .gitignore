@@ -7,3 +7,4 @@ MANIFEST
 build/
 dist/
 .vscode/settings.json
+.vscode/.ropeproject/objectdb
