@@ -1,84 +1,63 @@
 # -*- coding: utf-8 -*-
 '''
-The NFC Tag monitor which returns the values as callbacks.
+Created on 02.12.2016
 
-:author: Willi Meierhof
+@author: lukas
 '''
-import logging
-from threading import Event, Thread
+
+import dbus
+from dbus.mainloop.glib import DBusGMainLoop
+from threading import Thread
 import time
-
-import nxppy
-import ndef
-
-logger = logging.getLogger(__name__)
 
 
 class NfcTagMonitor(Thread):
-    '''The tag monitor class definition.
+    '''
+    classdocs
     '''
 
-    def __init__(self, nfc_tag_hold=True):
-        """
-        Constructor.
-        """
-        Thread.__init__(self)
-        self._stop_event = Event()
-
+    def __init__(self):
+        '''
+        Constructor
+        '''
         self.lastTag = None
-        self.uriTagCallback = None
-        self.controlTagCallback = None
-        self.nfcTagRemovedCallback = None
-        self.nfcTagHold = nfc_tag_hold
-        self.tagRemoved = True
-        self.mifare = nxppy.Mifare()
+        self.newTagCallback = None
+        self.tagLostCallback = None
+        dbus_loop = DBusGMainLoop()
+        self.bus = dbus.SystemBus(mainloop=dbus_loop)
+        self.objManager = dbus.Interface(
+            self.bus.get_object("org.neard", "/"),
+            "org.freedesktop.DBus.ObjectManager")
+        self.adapter = dbus.Interface(
+            self.bus.get_object("org.neard", "/org/neard/nfc0"),
+            "org.neard.Adapter")
 
     def run(self):
-        """
-        The method to run in an additional thread.
-        """
-        logger.info("NfcTagMonitor: Run the cycle ...")
         while True:
-            # reading the card id
-            try:
-                uid = self.mifare.select()
-                if uid != self.lastTag:
-                    logger.debug("Selected the following id: {}".format(uid))
-                    self.lastTag = uid
-                    nfc_content = list(
-                        ndef.message_decoder(self.mifare.read_ndef()))
-                    for record in nfc_content:
-                        logger.debug("Record type: {}".format(record.type))
-                        if record.type == 'urn:nfc:wkt:U':
-                            logger.debug("detected URI type")
-                            logger.debug('URI: {}'.format(record.uri))
-                            self.uriTagCallback(record.uri)
-                        else:
-                            logger.debug("detected unknown type")
-                            logger.debug('TYPE: {}'.format(record.type))
-                            self.controlTagCallback()
-                else:
-                    if self.nfcTagHold and self.tagRemoved:
-                        self.controlTagCallback('RESUME')
-                self.tagRemoved = False
-            except nxppy.SelectError as se:
-                # SelectError is raised if no card is in the field.
-                logger.debug(
-                    "Had an issue selecting the id. Probably the NFC tag has been removed: {}"
-                    .format(se))
-                if self.nfcTagHold:
-                    self.nfcTagRemovedCallback()
-                    self.tagRemoved = True
+            self.adapter.StartPollLoop("test")
+            objects = self.objManager.GetManagedObjects()
+            allInterfaces = {}
+            for dictionary in objects.itervalues():
+                allInterfaces.update(dictionary)
+            props = allInterfaces.get("org.neard.Record", {})
+            for (key, value) in props.items():
+                if key == "URI":
+                    uri = value.decode("UTF-8")
+                    if uri != self.lastTag:
+                        print("TAG_DETECTED: {}".format(uri))
+                        self.newTagCallback(uri)
+                        self.lastTag = uri
+                    break
+            else:
+                if self.lastTag:
+                    print("TAG_LOST")
+                    self.tagLostCallback()
+                    self.lastTag = None
+
             time.sleep(0.1)
-    
-    def cancel(self):
-        self._stop_event.set()
 
-    def RegisterUriTagCallback(self, callback):
-        self.uriTagCallback = callback
+    def RegisterNewTagCallback(self, callback):
+        self.newTagCallback = callback
 
-    def RegisterControlTagCallback(self, callback):
-        self.controlTagCallback = callback
-
-    def RegisterNfcTagRemovedCallback(self, callback):
-        self.nfcTagRemovedCallback = callback
+    def RegisterTagLostCallback(self, callback):
+        self.tagLostCallback = callback
