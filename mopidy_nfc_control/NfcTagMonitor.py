@@ -27,7 +27,9 @@ class NfcTagMonitor(Thread):
         Thread.__init__(self)
         self.started = True
         self.lastTag = None
-        self.newTagCallback = None
+
+        self.newTextCallback = None
+        self.newUriCallback = None
         self.tagLostCallback = None
 
         dbus_loop = DBusGMainLoop()
@@ -59,6 +61,14 @@ class NfcTagMonitor(Thread):
                         self.newTagCallback(uri)
                         self.lastTag = uri
                     break
+                elif key == "Representation":
+                    text = value.decode("UTF-8")
+                    if text != self.lastTag:
+                        logger.debug(__logprefix__ +
+                                     "TAG_DETECTED: {}".format(text))
+                        self.newTagCallback(text)
+                        self.lastTag = text
+                    break
             else:
                 if self.lastTag:
                     logger.debug(__logprefix__ + "TAG_LOST")
@@ -70,8 +80,11 @@ class NfcTagMonitor(Thread):
     def cancel(self):
         self.started = False
 
-    def RegisterNewTagCallback(self, callback):
-        self.newTagCallback = callback
+    def RegisterNewUriCallback(self, callback):
+        self.newUriCallback = callback
+
+    def RegisterNewTextCallback(self, callback):
+        self.newTextCallback = callback
 
     def RegisterTagLostCallback(self, callback):
         self.tagLostCallback = callback
