@@ -20,6 +20,7 @@ class NfcTagMonitor(Thread):
         '''
         Constructor
         '''
+        Thread.__init__(self)
         self.lastTag = None
         self.newTagCallback = None
         self.tagLostCallback = None
