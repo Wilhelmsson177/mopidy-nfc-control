@@ -17,6 +17,9 @@ class NfcControl(pykka.ThreadingActor, core.CoreListener):
         self.taghold = config['nfc-control']['taghold']
         self.nfcTagMonitor = None
 
+        self.lastUri = None
+        self.lastText = None
+
         logger.info(__logprefix__ +
                     'Successfully initialized NfcControl frontend plugin.')
 
@@ -41,7 +44,7 @@ class NfcControl(pykka.ThreadingActor, core.CoreListener):
 
     def TagRemoved(self):
         logger.debug(__logprefix__ + 'Tag has been removed')
-        self.core.playback.stop()
+        self.core.playback.pause()
 
     def Control(self, control=None):
         logger.info(__logprefix__ + 'Received {} control.'.format(control))
@@ -54,10 +57,14 @@ class NfcControl(pykka.ThreadingActor, core.CoreListener):
         :type uri: string
         '''
         logger.info("{}Received URI: {}".format(__logprefix__, uri))
-        self.core.tracklist.clear()
-        tracks = self.core.tracklist.add(uris=[uri])
-        logger.debug("{}Received tracks: {}".format(__logprefix__, tracks.get()))
-        tl_track = self.core.tracklist.get_tl_tracks().get()[0]
-        logger.debug("{}Newest track: {}".format(__logprefix__, tl_track))
-        self.core.playback.play(tl_track)
-        logger.debug("{}State: {}".format(__logprefix__, self.core.playback.get_state().get()))
+        if uri == self.lastUri:
+            self.core.playback.resume()
+        else:
+            self.lastUri = uri
+            self.core.tracklist.clear()
+            tracks = self.core.tracklist.add(uris=[uri])
+            logger.debug("{}Received tracks: {}".format(__logprefix__, tracks.get()))
+            tl_track = self.core.tracklist.get_tl_tracks().get()[0]
+            logger.debug("{}Newest track: {}".format(__logprefix__, tl_track))
+            self.core.playback.play()
+            logger.debug("{}State: {}".format(__logprefix__, self.core.playback.get_state().get()))
